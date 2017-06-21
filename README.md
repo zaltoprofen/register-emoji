@@ -19,4 +19,7 @@ password = "pass12345"
 [other-team]
 mail = "john@example.com"
 password = "pass54321"
+
+[other-team2]
+cookie = /path/to/cookies.txt
 ```

@@ -12,7 +12,6 @@ class Slack:
         options = Options()
         if headless:
             options.add_argument('--headless')
-        self._logged_in = False
         self._driver = webdriver.Chrome(chrome_options=options)
         self._url_prefix = Slack._url_template.format(team_name=team_name)
 
@@ -27,16 +26,29 @@ class Slack:
         e.send_keys(password)
         e.send_keys(Keys.ENTER)
 
-        self._logged_in = driver.current_url != self._url_prefix
-        return self._logged_in
+        return driver.current_url != self._url_prefix
+
+    def add_cookies(self, cookie_dicts):
+        for c in cookie_dicts:
+            self.add_cookie(c)
+
+    @property
+    def _blank(self):
+        return self._driver.current_url == "data:,"
+
+    def add_cookie(self, cookie_dict):
+        if self._blank:
+            self._driver.get(self._url_prefix)
+        self._driver.add_cookie(cookie_dict)
 
     def register_emoji(self, name: str, image_path: str):
         import os
-        if not self._logged_in:
-            raise RuntimeError('Not logged in')  # TODO: use User-defined Exception
         driver = self._driver
 
-        driver.get(self._url_prefix + '/customize/emoji')
+        url = self._url_prefix + '/customize/emoji'
+        driver.get(url)
+        if driver.current_url != url:
+            raise RuntimeError('Not logged in')  # TODO: use User-defined Exception
         driver.find_element_by_id('emojiname').send_keys(name)
         img_path = os.path.abspath(image_path)
         driver.find_element_by_id('emojiimg').send_keys(img_path)
